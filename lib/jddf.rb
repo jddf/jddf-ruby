@@ -1,6 +1,8 @@
-require "jddf/version"
+# frozen_string_literal: true
 
-module Jddf
-  class Error < StandardError; end
-  # Your code goes here...
+require 'jddf/schema'
+require 'jddf/version'
+
+# JDDF asdf
+module JDDF
 end
