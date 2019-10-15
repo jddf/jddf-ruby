@@ -90,6 +90,7 @@ module JDDF
       return :properties if properties || optional_properties
       return :values if values
       return :discriminator if discriminator
+
       :empty
     end
   end

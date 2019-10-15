@@ -7,7 +7,7 @@ describe 'JDDF' do
         Dir['jddf-spec/tests/validation/*'].each do |path|
           describe path do
             suites = JSON.parse(File.read(path))
-            suites.each do |suite, index|
+            suites.each do |suite|
               describe suite['name'] do
                 suite['instances'].each_with_index do |test_case, index|
                   it index do
@@ -15,15 +15,21 @@ describe 'JDDF' do
                     validator = JDDF::Validator.new
 
                     expected = test_case['errors'].map do |error|
-                      err = JDDF::ValidationError.new
-                      err.instance_path = error['instancePath'].split('/')[1..] || []
-                      err.schema_path = error['schemaPath'].split('/')[1..] || []
+                      instance_path = error['instancePath'].split('/').drop(1)
+                      schema_path = error['schemaPath'].split('/').drop(1)
 
+                      err = JDDF::ValidationError.new
+                      err.instance_path = instance_path || []
+                      err.schema_path = schema_path || []
                       err
                     end
 
                     actual = validator.validate(schema, test_case['instance'])
-                    expect(actual.sort_by(&:instance_path)).to eq expected.sort_by(&:instance_path)
+
+                    expected.sort_by!(&:instance_path)
+                    actual.sort_by!(&:instance_path)
+
+                    expect(actual).to eq expected
                   end
                 end
               end

@@ -15,3 +15,12 @@ Metrics/PerceivedComplexity:
 
 Lint/ShadowingOuterLocalVariable:
   Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/BlockNesting:
+  Enabled: false
+
+Style/Next:
+  Enabled: false

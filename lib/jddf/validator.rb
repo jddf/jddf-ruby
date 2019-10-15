@@ -7,23 +7,7 @@ module JDDF
 
   # Validator
   class Validator
-    attr_accessor :max_depth
-    attr_accessor :max_errors
-
-    def validate(schema, instance)
-      vm = VM.new
-      vm.max_depth = max_depth
-      vm.max_errors = max_errors
-      vm.root_schema = schema
-      vm.instance_tokens = []
-      vm.schema_tokens = [[]]
-      vm.errors = []
-
-      vm.validate(schema, instance)
-
-      vm.errors
-    end
-
+    # VM
     class VM
       attr_accessor :max_depth
       attr_accessor :max_errors
@@ -51,13 +35,13 @@ module JDDF
           when :uint8
             validate_int(instance, 0, 255)
           when :int16
-            validate_int(instance, -32768, 32767)
+            validate_int(instance, -32_768, 32_767)
           when :uint16
-            validate_int(instance, 0, 65535)
+            validate_int(instance, 0, 65_535)
           when :int32
-            validate_int(instance, -2147483648, 2147483647)
+            validate_int(instance, -2_147_483_648, 2_147_483_647)
           when :uint32
-            validate_int(instance, 0, 4294967295)
+            validate_int(instance, 0, 4_294_967_295)
           when :string
             push_error unless instance.is_a?(String)
           when :timestamp
@@ -129,8 +113,10 @@ module JDDF
 
             unless schema.additional_properties
               instance.keys.each do |key|
-                in_properties = schema.properties && schema.properties.include?(key)
-                in_optional_properties = schema.optional_properties && schema.optional_properties.include?(key)
+                in_properties =
+                  schema.properties&.include?(key)
+                in_optional_properties =
+                  schema.optional_properties&.include?(key)
                 is_parent_tag = parent_tag == key
 
                 unless in_properties || in_optional_properties || is_parent_tag
@@ -175,8 +161,10 @@ module JDDF
                 push_schema_token('mapping')
 
                 if schema.discriminator.mapping.include?(tag_value)
+                  sub_schema = schema.discriminator.mapping[tag_value]
+
                   push_schema_token(tag_value)
-                  validate(schema.discriminator.mapping[tag_value], instance, schema.discriminator.tag)
+                  validate(sub_schema, instance, schema.discriminator.tag)
                   pop_schema_token
                 else
                   push_instance_token(schema.discriminator.tag)
@@ -238,6 +226,25 @@ module JDDF
 
         errors << error
       end
+    end
+
+    private_constant :VM
+
+    attr_accessor :max_depth
+    attr_accessor :max_errors
+
+    def validate(schema, instance)
+      vm = VM.new
+      vm.max_depth = max_depth
+      vm.max_errors = max_errors
+      vm.root_schema = schema
+      vm.instance_tokens = []
+      vm.schema_tokens = [[]]
+      vm.errors = []
+
+      vm.validate(schema, instance)
+
+      vm.errors
     end
   end
 end
