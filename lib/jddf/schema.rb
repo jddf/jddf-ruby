@@ -81,6 +81,17 @@ module JDDF
 
       schema
     end
+
+    def form
+      return :ref if ref
+      return :type if type
+      return :enum if enum
+      return :elements if elements
+      return :properties if properties || optional_properties
+      return :values if values
+      return :discriminator if discriminator
+      :empty
+    end
   end
 
   Discriminator = Struct.new(*DISCRIMINATOR_KEYWORDS) do
