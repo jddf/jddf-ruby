@@ -1,39 +1,106 @@
-# Jddf
+# jddf-ruby [![Gem Version][badge]][rubygems]
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/jddf`. To experiment with that code, run `bin/console` for an interactive prompt.
+> Documentation on rubydoc.info: https://www.rubydoc.info/github/jddf/jddf-ruby
 
-TODO: Delete this and the text above, and describe your gem
+This gem is a Ruby implementation of [JSON Data Definition Format][jddf], a
+schema language for JSON. You can use this gem to:
 
-## Installation
+1. Validate input data against a schema,
+2. Get a list of validation errors from that input data, or
+3. Build your own tooling on top of JSON Data Definition Format
 
-Add this line to your application's Gemfile:
+[jddf]: https://jddf.io
+[badge]: https://badge.fury.io/rb/jddf.svg
+[rubygems]: https://rubygems.org/gems/jddf
+
+## Installing
+
+You can install this gem by running:
+
+```bash
+gem install jddf
+```
+
+Or if you're using Bundler:
 
 ```ruby
 gem 'jddf'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install jddf
-
 ## Usage
 
-TODO: Write usage instructions here
+The two most important classes offered by the `JDDF` module are:
 
-## Development
+* `Schema`, which represents a JDDF schema,
+* `Validator`, which can validate a `Schema` against any parsed JSON data, and
+* `ValidationError`, which represents a single validation problem with the
+  input. `Validator#validate` returns an array of these.
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+Here's a working example:
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```ruby
+require 'jddf'
 
-## Contributing
+# In this example, we're passing in a Hash directly into Schema#from_json, but
+# this type of Hash is exactly what JSON#parse returns.
+schema = JDDF::Schema.from_json({
+  'properties' => {
+    'name' => { 'type' => 'string' },
+    'age' => { 'type' => 'uint32' },
+    'phones' => {
+      'elements' => { 'type' => 'string' }
+    }
+  }
+})
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/jddf.
+# Like before, in order to keep things simple we're construct raw Ruby values
+# here. But you can also get this sort of data by parsing JSON using the
+# standard library's JSON#parse.
+#
+# This input data is perfect. It satisfies all the schema requirements.
+input_ok = {
+  'name' => 'John Doe',
+  'age' => 43,
+  'phones' => [
+    '+44 1234567',
+    '+44 2345678'
+  ]
+}
 
-## License
+# This input data has problems. "name" is missing, "age" has the wrong type,
+# and "phones[1]" has the wrong type.
+input_bad = {
+  'age' => '43',
+  'phones' => [
+    '+44 1234567',
+    442345678
+  ]
+}
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+# Validator can validate schemas against inputs. Validator#validate returns an
+# array of ValidationError.
+#
+# These ValidationError instances are portable -- every implementation of JDDF,
+# across every language, returns the same errors.
+validator = JDDF::Validator.new
+result_ok = validator.validate(schema, input_ok)
+result_bad = validator.validate(schema, input_bad)
+
+p result_ok.size  # 0
+p result_bad.size # 3
+
+# This error indicates that "name" is missing.
+#
+# #<struct JDDF::ValidationError instance_path=[], schema_path=["properties", "name"]
+p result_bad[0]
+
+# This error indicates that "age" has the wrong type.
+#
+# #<struct JDDF::ValidationError instance_path=["age"], schema_path=["properties", "age", "type"]>
+p result_bad[1]
+
+# This error indicates that "phones[1]" has the wrong type.
+#
+# #<struct JDDF::ValidationError instance_path=["phones", "1"], schema_path=["properties", "phones", "elements", "type"]>
+p result_bad[2]
+```

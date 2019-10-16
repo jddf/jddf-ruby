@@ -49,7 +49,8 @@ describe 'JDDF' do
       end
 
       describe 'spec tests' do
-        test_cases = JSON.parse(File.read('jddf-spec/tests/invalid-schemas.json'))
+        test_cases = File.read('jddf-spec/tests/invalid-schemas.json')
+        test_cases = JSON.parse(test_cases)
         test_cases.each do |test_case|
           it test_case['name'] do
             errored = false

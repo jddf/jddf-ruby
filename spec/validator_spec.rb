@@ -3,6 +3,32 @@
 describe 'JDDF' do
   describe 'Validator' do
     describe 'validate' do
+      it 'supports max depth' do
+        validator = JDDF::Validator.new
+        validator.max_depth = 3
+
+        schema = JDDF::Schema.from_json(
+          'definitions' => { '' => { 'ref' => '' } },
+          'ref' => ''
+        )
+
+        expect do
+          validator.validate(schema, nil)
+        end.to raise_error JDDF::MaxDepthExceededError
+      end
+
+      it 'supports max errors' do
+        validator = JDDF::Validator.new
+        validator.max_errors = 3
+
+        schema = JDDF::Schema.from_json(
+          'elements' => { 'type' => 'string' }
+        )
+
+        errors = validator.validate(schema, [nil, nil, nil, nil, nil])
+        expect(errors.size).to eq 3
+      end
+
       describe 'spec tests' do
         Dir['jddf-spec/tests/validation/*'].each do |path|
           describe path do

@@ -35,112 +35,99 @@ module JDDF
 
   Schema = Struct.new(*SCHEMA_KEYWORDS) do
     def self.from_json(hash)
-      if !hash.is_a?(Hash)
-        raise TypeError.new('hash must be a Hash')
-      end
+      raise TypeError.new, 'hash must be a Hash' unless hash.is_a?(Hash)
 
       schema = Schema.new
 
       if hash.include?('definitions')
-        if hash['definitions'].is_a?(Hash)
-          schema.definitions = hash['definitions'].map do |key, schema|
-            [key, from_json(schema)]
-          end.to_h
-        else
-          raise TypeError.new('definitions not Hash')
+        unless hash['definitions'].is_a?(Hash)
+          raise TypeError, 'definitions not Hash'
         end
+
+        schema.definitions = hash['definitions'].map do |key, schema|
+          [key, from_json(schema)]
+        end.to_h
       end
 
       if hash.include?('ref')
-        if hash['ref'].is_a?(String)
-          schema.ref = hash['ref']
-        else
-          raise TypeError.new('ref not String')
-        end
+        raise TypeError, 'ref not String' unless hash['ref'].is_a?(String)
+
+        schema.ref = hash['ref']
       end
 
       if hash.include?('type')
-        if hash['type'].is_a?(String) && TYPES.map(&:to_s).include?(hash['type'])
-          schema.type = hash['type'].to_sym
-        else
-          raise TypeError.new("type not one of #{TYPES.inspect}")
+        raise TypeError, 'type not String' unless hash['type'].is_a?(String)
+
+        unless TYPES.map(&:to_s).include?(hash['type'])
+          raise TypeError, "type not in #{TYPES}"
         end
+
+        schema.type = hash['type'].to_sym
       end
 
       if hash.include?('enum')
-        if hash['enum'].is_a?(Array)
-          if hash['enum'].empty?
-            raise ArgumentError.new('enum is empty array')
-          end
+        raise TypeError, 'enum not Array' unless hash['enum'].is_a?(Array)
+        raise ArgumentError, 'enum is empty array' if hash['enum'].empty?
 
-          hash['enum'].each do |value|
-            if !value.is_a?(String)
-              raise TypeError.new('enum element not String')
-            end
-          end
+        hash['enum'].each do |value|
+          raise TypeError, 'enum element not String' unless value.is_a?(String)
+        end
 
-          schema.enum = hash['enum'].to_set
+        schema.enum = hash['enum'].to_set
 
-          if schema.enum.size != hash['enum'].size
-            raise ArgumentError.new('enum contains duplicates')
-          end
-        else
-          raise TypeError.new('enum not Array')
+        if schema.enum.size != hash['enum'].size
+          raise ArgumentError, 'enum contains duplicates'
         end
       end
 
       if hash.include?('elements')
-        if hash['elements'].is_a?(Hash)
-          schema.elements = from_json(hash['elements'])
-        else
-          raise TypeError.new('elements not Hash')
-        end
+        raise TypeError, 'elements not Hash' unless hash['elements'].is_a?(Hash)
+
+        schema.elements = from_json(hash['elements'])
       end
 
       if hash.include?('properties')
-        if hash['properties'].is_a?(Hash)
-          schema.properties = hash['properties'].map do |key, schema|
-            [key, from_json(schema)]
-          end.to_h
-        else
-          raise TypeError.new('properties not Hash')
+        unless hash['properties'].is_a?(Hash)
+          raise TypeError, 'properties not Hash'
         end
+
+        schema.properties = hash['properties'].map do |key, schema|
+          [key, from_json(schema)]
+        end.to_h
       end
 
       if hash.include?('optionalProperties')
-        if hash['optionalProperties'].is_a?(Hash)
-          optional_properties = hash['optionalProperties'].map do |key, schema|
-            [key, from_json(schema)]
-          end.to_h
-
-          schema.optional_properties = optional_properties
-        else
-          raise TypeError.new('optionalProperties not Hash')
+        unless hash['optionalProperties'].is_a?(Hash)
+          raise TypeError, 'optionalProperties not Hash'
         end
+
+        optional_properties = hash['optionalProperties'].map do |key, schema|
+          [key, from_json(schema)]
+        end.to_h
+
+        schema.optional_properties = optional_properties
       end
 
       if hash.include?('additionalProperties')
-        if [true, false].include?(hash['additionalProperties'])
-          schema.additional_properties = hash['additionalProperties']
-        else
-          raise TypeError.new('additionalProperties not boolean')
+        unless [true, false].include?(hash['additionalProperties'])
+          raise TypeError, 'additionalProperties not boolean'
         end
+
+        schema.additional_properties = hash['additionalProperties']
       end
 
       if hash.include?('values')
-        if hash['values'].is_a?(Hash)
-          schema.values = from_json(hash['values'])
-        else
-          raise TypeError.new('values not Hash')
-        end
+        raise TypeError, 'values not Hash' unless hash['values'].is_a?(Hash)
+
+        schema.values = from_json(hash['values'])
       end
 
       if hash.include?('discriminator')
-        if hash['discriminator'].is_a?(Hash)
-          schema.discriminator = Discriminator.from_json(hash['discriminator'])
-        else
-          raise TypeError.new('discriminator not Hash')
+        unless hash['discriminator'].is_a?(Hash)
+          raise TypeError, 'discriminator not Hash'
         end
+
+        schema.discriminator = Discriminator.from_json(hash['discriminator'])
       end
 
       schema
@@ -165,29 +152,33 @@ module JDDF
         empty = false
 
         unless root.definitions&.keys&.include?(ref)
-          raise ArgumentError.new('reference to non-existent definition')
+          raise ArgumentError, 'reference to non-existent definition'
         end
       end
 
       if type
-        raise ArgumentError.new('invalid form') unless empty
+        raise ArgumentError, 'invalid form' unless empty
+
         empty = false
       end
 
       if enum
-        raise ArgumentError.new('invalid form') unless empty
+        raise ArgumentError, 'invalid form' unless empty
+
         empty = false
       end
 
       if elements
-        raise ArgumentError.new('invalid form') unless empty
+        raise ArgumentError, 'invalid form' unless empty
+
         empty = false
 
         elements.verify(root)
       end
 
       if properties || optional_properties
-        raise ArgumentError.new('invalid form') unless empty
+        raise ArgumentError, 'invalid form' unless empty
+
         empty = false
 
         properties&.values&.each { |schema| schema.verify(root) }
@@ -195,7 +186,8 @@ module JDDF
       end
 
       if values
-        raise ArgumentError.new('invalid form') unless empty
+        raise ArgumentError, 'invalid form' unless empty
+
         empty = false
 
         values.verify(root)
@@ -203,25 +195,23 @@ module JDDF
 
       if properties && optional_properties
         unless (properties.keys & optional_properties.keys).empty?
-          raise ArgumentError.new('properties and optional_properties share key')
+          raise ArgumentError, 'properties and optional_properties share key'
         end
       end
 
       if discriminator
-        raise ArgumentError.new('invalid form') unless empty
-        empty = false
+        raise ArgumentError, 'invalid form' unless empty
 
         discriminator.mapping.values.each do |schema|
           schema.verify(root)
 
-          if schema.form == :properties
-            in_props = schema&.properties&.include?(discriminator.tag)
-            in_opt_props = schema&.optional_properties&.include?(discriminator.tag)
-            if in_props || in_opt_props
-              raise ArgumentError.new('tag appears in mapping properties')
-            end
-          else
-            raise ArgumentError.new('mapping value not of properties form')
+          unless schema.form == :properties
+            raise ArgumentError, 'mapping value not of properties form'
+          end
+
+          if schema&.properties&.include?(discriminator.tag) ||
+             schema&.optional_properties&.include?(discriminator.tag)
+            raise ArgumentError, 'tag appears in mapping properties'
           end
         end
       end
@@ -232,8 +222,8 @@ module JDDF
 
   Discriminator = Struct.new(*DISCRIMINATOR_KEYWORDS) do
     def self.from_json(hash)
-      raise TypeError.new('tag not String') unless hash['tag'].is_a?(String)
-      raise TypeError.new('mapping not Hash') unless hash['mapping'].is_a?(Hash)
+      raise TypeError, 'tag not String' unless hash['tag'].is_a?(String)
+      raise TypeError, 'mapping not Hash' unless hash['mapping'].is_a?(Hash)
 
       mapping = hash['mapping'].map do |key, schema|
         [key, Schema.from_json(schema)]

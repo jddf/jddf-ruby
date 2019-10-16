@@ -3,10 +3,24 @@
 require 'time'
 
 module JDDF
+  # ValidationError
   ValidationError = Struct.new(:instance_path, :schema_path)
+
+  # MaxDepthExceededError
+  class MaxDepthExceededError < StandardError
+    def initialize(msg = 'max depth exceeded while validating')
+      super
+    end
+  end
 
   # Validator
   class Validator
+    # MaxErrorsError
+    class MaxErrorsError < StandardError
+    end
+
+    private_constant :MaxErrorsError
+
     # VM
     class VM
       attr_accessor :max_depth
@@ -19,6 +33,8 @@ module JDDF
       def validate(schema, instance, parent_tag = nil)
         case schema.form
         when :ref
+          raise MaxDepthExceededError if schema_tokens.size == max_depth
+
           schema_tokens << ['definitions', schema.ref]
           validate(root_schema.definitions[schema.ref], instance)
           schema_tokens.pop
@@ -225,6 +241,8 @@ module JDDF
         error.schema_path = schema_tokens.last.clone
 
         errors << error
+
+        raise MaxErrorsError if errors.size == max_errors
       end
     end
 
@@ -242,7 +260,11 @@ module JDDF
       vm.schema_tokens = [[]]
       vm.errors = []
 
-      vm.validate(schema, instance)
+      begin
+        vm.validate(schema, instance)
+      rescue MaxErrorsError # rubocop:disable Lint/HandleExceptions
+        # There is nothing to do here. MaxErrorsError is just a circuit-breaker.
+      end
 
       vm.errors
     end
