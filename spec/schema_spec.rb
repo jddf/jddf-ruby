@@ -4,8 +4,8 @@ require 'json'
 require 'set'
 
 describe 'JDDF' do
-  describe 'JDDF::Schema' do
-    describe 'JDDF::Schema::from_json' do
+  describe 'Schema' do
+    describe 'from_json' do
       it 'parses from JSON' do
         input = %(
           {
@@ -46,6 +46,23 @@ describe 'JDDF' do
 
         actual = JDDF::Schema.from_json(JSON.parse(input))
         expect(actual).to eq expected
+      end
+
+      describe 'spec tests' do
+        test_cases = JSON.parse(File.read('jddf-spec/tests/invalid-schemas.json'))
+        test_cases.each do |test_case|
+          it test_case['name'] do
+            errored = false
+
+            begin
+              JDDF::Schema.from_json(test_case['schema']).verify
+            rescue ArgumentError, TypeError
+              errored = true
+            end
+
+            expect(errored).to be true
+          end
+        end
       end
     end
   end

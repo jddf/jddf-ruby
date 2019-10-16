@@ -11,7 +11,7 @@ describe 'JDDF' do
               describe suite['name'] do
                 suite['instances'].each_with_index do |test_case, index|
                   it index do
-                    schema = JDDF::Schema.from_json(suite['schema'])
+                    schema = JDDF::Schema.from_json(suite['schema']).verify
                     validator = JDDF::Validator.new
 
                     expected = test_case['errors'].map do |error|
