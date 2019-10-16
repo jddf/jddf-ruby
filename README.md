@@ -31,10 +31,15 @@ gem 'jddf'
 
 The two most important classes offered by the `JDDF` module are:
 
-* `Schema`, which represents a JDDF schema,
-* `Validator`, which can validate a `Schema` against any parsed JSON data, and
-* `ValidationError`, which represents a single validation problem with the
-  input. `Validator#validate` returns an array of these.
+* [`Schema`][schema], which represents a JDDF schema,
+* [`Validator`][validator], which can validate a `Schema` against any parsed
+  JSON data, and
+* [`ValidationError`][validation-error], which represents a single validation
+  problem with the input. `Validator#validate` returns an array of these.
+
+[schema]: https://www.rubydoc.info/github/jddf/jddf-ruby/master/JDDF/Schema
+[validator]: https://www.rubydoc.info/github/jddf/jddf-ruby/master/JDDF/Validator
+[validation-error]: https://www.rubydoc.info/github/jddf/jddf-ruby/master/JDDF/ValidationError
 
 Here's a working example:
 
