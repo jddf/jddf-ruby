@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module JDDF
+  # The keywords that may appear on a JDDF schema.
+  #
+  # Each of these values correspond to an attribute available on {Schema}.
   SCHEMA_KEYWORDS = %i[
     definitions
     ref
@@ -14,11 +17,18 @@ module JDDF
     discriminator
   ].freeze
 
+  # The keywords that may appear on a JDDF schema discriminator object.
+  #
+  # Each of these values correspond to an attribute available on
+  # {Discriminator}.
   DISCRIMINATOR_KEYWORDS = %i[
     tag
     mapping
   ].freeze
 
+  # The values the +type+ keyword may take on in a JDDF schema.
+  #
+  # The +type+ attribute of {Schema} has one of these values.
   TYPES = %i[
     boolean
     int8
@@ -33,7 +43,28 @@ module JDDF
     timestamp
   ].freeze
 
+  # A JDDF schema.
+  #
+  # This class is a +Struct+. Validate instances against it using
+  # {Validator#validate}.
+  #
+  # This class's attributes are in {SCHEMA_KEYWORDS}.
   Schema = Struct.new(*SCHEMA_KEYWORDS) do
+    # Construct a {Schema} from parsed JSON.
+    #
+    # This function performs type checks to ensure the data is well-typed, but
+    # does not perform all the checks necesary to ensure data is a correct JDDF
+    # schema. Using this function in combination with {verify} ensures that a
+    # JDDF schema is guaranteed to be correct according to the spec.
+    #
+    # +hash+ should be the result of calling +JSON#parse+.
+    #
+    # @param hash [Hash] a JSON object representing a JDDF schema
+    #
+    # @raise [ArgumentError, TypeError] if the inputted hash is not a valid
+    #   schema
+    #
+    # @return [Schema] the parsed schema
     def self.from_json(hash)
       raise TypeError.new, 'hash must be a Hash' unless hash.is_a?(Hash)
 
@@ -133,6 +164,12 @@ module JDDF
       schema
     end
 
+    # Determine which of the eight forms this schema takes on.
+    #
+    # This function is well-defined only if the schema is a correct schema --
+    # i.e., you have called {verify} and no errors were raised.
+    #
+    # @return [Symbol] the form of the schema
     def form
       return :ref if ref
       return :type if type
@@ -145,6 +182,14 @@ module JDDF
       :empty
     end
 
+    # Check that the schema represents a correct JDDF schema.
+    #
+    # To make it convenient to construct and verify a schema, this function
+    # returns +self+ if the schema is correct.
+    #
+    # @raise [ArgumentError] if the schema is incorrect
+    #
+    # @return [Schema] self
     def verify(root = self)
       empty = true
 
@@ -220,7 +265,16 @@ module JDDF
     end
   end
 
+  # A JDDF schema discriminator object.
+  #
+  # This class is a +Struct+. It is primarily a helper sub-structure of
+  # {Schema}.
+  #
+  # The attributes of this struct are in {DISCRIMINATOR_KEYWORDS}.
   Discriminator = Struct.new(*DISCRIMINATOR_KEYWORDS) do
+    # Construct a {Discriminator} from parsed JSON.
+    #
+    # This is primarily meant to be a helper method to {Schema#from_json}.
     def self.from_json(hash)
       raise TypeError, 'tag not String' unless hash['tag'].is_a?(String)
       raise TypeError, 'mapping not Hash' unless hash['mapping'].is_a?(Hash)

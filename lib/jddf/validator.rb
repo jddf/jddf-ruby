@@ -3,17 +3,29 @@
 require 'time'
 
 module JDDF
-  # ValidationError
+  # A single JDDF validation error.
+  #
+  # Instances of this class are returned from {Validator#validate}.
+  #
+  # The attributes of this class are both arrays of strings. They represent JSON
+  # Pointers.
+  #
+  # @attr [Array] instance_path an array of strings pointing to the rejected
+  #   part of the input ("instance")
+  #
+  # @attr [Array] schema_path an array of strings pointing to the part of the
+  #   schema which rejected the instance
   ValidationError = Struct.new(:instance_path, :schema_path)
 
-  # MaxDepthExceededError
+  # MaxDepthExceededError is raised when the maximum depth of a {Validator} is
+  # exceeded.
   class MaxDepthExceededError < StandardError
     def initialize(msg = 'max depth exceeded while validating')
       super
     end
   end
 
-  # Validator
+  # Validates JSON instances against JDDF schemas.
   class Validator
     # MaxErrorsError
     class MaxErrorsError < StandardError
@@ -248,9 +260,43 @@ module JDDF
 
     private_constant :VM
 
+    # The maximum stack depth of references to follow when running {validate}.
+    #
+    # If this maximum depth is exceeded, such as if a schema passed to
+    # {validate} is defined cyclically, then {validate} throws a
+    # {MaxDepthExceededError}.
+    #
+    # By default, no maximum depth is enforced. The validator may overflow the
+    # stack if a schema is defined cyclically.
+    #
+    # @return [Integer] the maximum depth of references to follow when validating
     attr_accessor :max_depth
+
+    # The maximum number of errors to return when running {validate}.
+    #
+    # If this value is set to a number, then it's guaranteed that {validate}
+    # will return an array of size no greater than the value of this attribute.
+    #
+    # By default, no maximum errors is enforced. All validation errors are
+    # returned.
+    #
+    # @return [Integer] the maximum errors to return when validating
     attr_accessor :max_errors
 
+    # Validate a JDDF schema against a JSON instance.
+    #
+    # The precise rules of validation for this method are defined formally by
+    # the JDDF specification, and this method follows those rules exactly,
+    # assuming that +instance+ is the result of calling +JSON#parse+ using the
+    # standard library's +JSON+ module.
+    #
+    # @param schema [Schema] the schema to validate against
+    #
+    # @param instance [Object] the input ("instance") to validate
+    #
+    # @raise [MaxDepthExceededError} if {max_depth} is exceeded.
+    #
+    # @return [Array] an array of {ValidationError}
     def validate(schema, instance)
       vm = VM.new
       vm.max_depth = max_depth

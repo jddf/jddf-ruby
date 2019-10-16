@@ -4,6 +4,6 @@ require 'jddf/schema'
 require 'jddf/validator'
 require 'jddf/version'
 
-# JDDF asdf
+# Provides support for JSON Data Defintion Format ("JDDF").
 module JDDF
 end
