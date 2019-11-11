@@ -190,7 +190,12 @@ module JDDF
     # @raise [ArgumentError] if the schema is incorrect
     #
     # @return [Schema] self
-    def verify(root = self)
+    def verify(root = self, is_root = true)
+      if definitions
+        raise ArgumentError, 'non-root definitions' unless is_root
+        definitions.values.each { |schema| schema.verify(root, false) }
+      end
+
       empty = true
 
       if ref
@@ -218,7 +223,7 @@ module JDDF
 
         empty = false
 
-        elements.verify(root)
+        elements.verify(root, false)
       end
 
       if properties || optional_properties
@@ -226,8 +231,8 @@ module JDDF
 
         empty = false
 
-        properties&.values&.each { |schema| schema.verify(root) }
-        optional_properties&.values&.each { |schema| schema.verify(root) }
+        properties&.values&.each { |schema| schema.verify(root, false) }
+        optional_properties&.values&.each { |schema| schema.verify(root, false) }
       end
 
       if values
@@ -235,7 +240,7 @@ module JDDF
 
         empty = false
 
-        values.verify(root)
+        values.verify(root, false)
       end
 
       if properties && optional_properties
@@ -248,7 +253,7 @@ module JDDF
         raise ArgumentError, 'invalid form' unless empty
 
         discriminator.mapping.values.each do |schema|
-          schema.verify(root)
+          schema.verify(root, false)
 
           unless schema.form == :properties
             raise ArgumentError, 'mapping value not of properties form'
