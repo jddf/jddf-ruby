@@ -1,4 +1,4 @@
-# jddf-ruby [![][packagist-badge]][packagist-url] [![][ci-badge]][ci-url]
+# jddf-ruby [![][rubygems-badge]][rubygems-url] [![][ci-badge]][ci-url]
 
 > Documentation on rubydoc.info: https://www.rubydoc.info/github/jddf/jddf-ruby
 
@@ -9,10 +9,10 @@ language for JSON. You can use this gem to:
 2. Get a list of validation errors from that input data, or
 3. Build your own tooling on top of JSON Data Definition Format
 
-[packagist-badge]: https://img.shields.io/packagist/v/jddf/jddf
-[ci-badge]: https://github.com/jddf/jddf-php/workflows/PHP%20CI/badge.svg?branch=master
-[packagist-url]: https://packagist.org/packages/jddf/jddf
-[ci-url]: https://github.com/jddf/jddf-php/actions
+[rubygems-badge]: https://img.shields.io/gem/v/jddf
+[ci-badge]: https://github.com/jddf/jddf-ruby/workflows/Ruby%20CI/badge.svg?branch=master
+[rubygems-url]: https://rubygems.org/gems/jddf
+[ci-url]: https://github.com/jddf/jddf-ruby/actions
 
 ## Installing
 
