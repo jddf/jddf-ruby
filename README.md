@@ -1,17 +1,18 @@
-# jddf-ruby [![Gem Version][badge]][rubygems]
+# jddf-ruby [![][packagist-badge]][packagist-url] [![][ci-badge]][ci-url]
 
 > Documentation on rubydoc.info: https://www.rubydoc.info/github/jddf/jddf-ruby
 
-This gem is a Ruby implementation of [JSON Data Definition Format][jddf], a
-schema language for JSON. You can use this gem to:
+This gem is a Ruby implementation of **JSON Data Definition Format**, a schema
+language for JSON. You can use this gem to:
 
 1. Validate input data against a schema,
 2. Get a list of validation errors from that input data, or
 3. Build your own tooling on top of JSON Data Definition Format
 
-[jddf]: https://jddf.io
-[badge]: https://badge.fury.io/rb/jddf.svg
-[rubygems]: https://rubygems.org/gems/jddf
+[packagist-badge]: https://img.shields.io/packagist/v/jddf/jddf
+[ci-badge]: https://github.com/jddf/jddf-php/workflows/PHP%20CI/badge.svg?branch=master
+[packagist-url]: https://packagist.org/packages/jddf/jddf
+[ci-url]: https://github.com/jddf/jddf-php/actions
 
 ## Installing
 
@@ -31,10 +32,10 @@ gem 'jddf'
 
 The two most important classes offered by the `JDDF` module are:
 
-* [`Schema`][schema], which represents a JDDF schema,
-* [`Validator`][validator], which can validate a `Schema` against any parsed
+- [`Schema`][schema], which represents a JDDF schema,
+- [`Validator`][validator], which can validate a `Schema` against any parsed
   JSON data, and
-* [`ValidationError`][validation-error], which represents a single validation
+- [`ValidationError`][validation-error], which represents a single validation
   problem with the input. `Validator#validate` returns an array of these.
 
 [schema]: https://www.rubydoc.info/github/jddf/jddf-ruby/master/JDDF/Schema
